@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exclusive Records - B Leduc</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 40px;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+        h1 {
+            font-size: 1.5rem;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 0.3rem;
+        }
+        p.subtitle {
+            color: #8b949e;
+            margin-bottom: 20px;
+        }
+        .nav-links {
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            color: #58a6ff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }
+        th {
+            background-color: #21262d;
+            color: #f0f6fc;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        th:hover {
+            background-color: #30363d;
+        }
+        th::after {
+            content: " ↕";
+            font-size: 0.8rem;
+            color: #8b949e;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover td {
+            background-color: #1f242c;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-links">
+        <a href="index.html">&larr; Back to Main Leaderboard</a>
+    </div>
+    
+    <h1>Exclusive Records for B Leduc</h1>
+    <p class="subtitle">GT3 & ETRC tracks and other car/track combos where <strong>B Leduc</strong> has a record that the other pilot doesn't hold or hasn't raced.</p>
+    
+    <table id="pilot-leaderboard">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Track</th>
+                <th onclick="sortTable(1)">Car</th>
+                <th onclick="sortTable(2, true)">Lap Time</th>
+                <th onclick="sortTable(3, true)">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td data-sort="ALPINE_V6_GROUPE5_3000 - AUTUMNRINGMINI">Autumnringmini</td><td data-sort="ALPINE_V6_GROUPE5_3000">Alpine V6 Groupe5 3000</td><td data-sort="46663">00:46.663</td><td data-sort="1788289367942">2026-09-01</td></tr><tr><td data-sort="ASRC_CLIO_CUP_5 - AUTUMNRINGMINI">Autumnringmini</td><td data-sort="ASRC_CLIO_CUP_5">Asrc Clio Cup 5</td><td data-sort="45643">00:45.643</td><td data-sort="1788291283994">2026-09-01</td></tr><tr><td data-sort="BMW_M3_E30 - KS_NURBURGRING-LAYOUT_SPRINT_B">Ks Nurburgring-Layout Sprint B</td><td data-sort="BMW_M3_E30">Bmw M3 E30</td><td data-sort="110750">01:50.750</td><td data-sort="1784027844399">2026-07-14</td></tr><tr><td data-sort="GT3 - KS_NURBURGRING-LAYOUT_SPRINT_B">Ks Nurburgring-Layout Sprint B</td><td data-sort="KS_FERRARI_488_GT3">Ks Ferrari 488 Gt3</td><td data-sort="90741">01:30.741</td><td data-sort="1789762084225">2026-09-18</td></tr><tr><td data-sort="GT3 - SPA-2022">Spa-2022</td><td data-sort="KS_FERRARI_488_GT3">Ks Ferrari 488 Gt3</td><td data-sort="149035">02:29.035</td><td data-sort="1789152353675">2026-09-11</td></tr><tr><td data-sort="KS_MCLAREN_P1_GTR - MONZA">Monza</td><td data-sort="KS_MCLAREN_P1_GTR">Ks Mclaren P1 Gtr</td><td data-sort="138480">02:18.480</td><td data-sort="1783784101087">2026-07-11</td></tr><tr><td data-sort="KS_PRAGA_R1 - LILSKI_WATKINS_GLEN-BOOT">Lilski Watkins Glen-Boot</td><td data-sort="KS_PRAGA_R1">Ks Praga R1</td><td data-sort="124775">02:04.775</td><td data-sort="1786567425487">2026-08-12</td></tr><tr><td data-sort="LOTUS_EVORA_S_S2 - KS_SILVERSTONE-INTERNATIONAL">Ks Silverstone-International</td><td data-sort="LOTUS_EVORA_S_S2">Lotus Evora S S2</td><td data-sort="82213">01:22.213</td><td data-sort="1787351118664">2026-08-21</td></tr><tr><td data-sort="LOTUS_EXIGE_S - KS_SILVERSTONE-GP">Ks Silverstone-Gp</td><td data-sort="LOTUS_EXIGE_S">Lotus Exige S</td><td data-sort="157780">02:37.780</td><td data-sort="1787351930293">2026-08-21</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+    function sortTable(colIndex, isNumeric = false) {
+        const table = document.getElementById("pilot-leaderboard");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        
+        const currentDir = table.getAttribute("data-sort-dir") === "asc" ? "desc" : "asc";
+        table.setAttribute("data-sort-dir", currentDir);
+
+        rows.sort((a, b) => {
+            let cellA = a.cells[colIndex];
+            let cellB = b.cells[colIndex];
+
+            if (!cellA || !cellB) return 0;
+
+            let valA = cellA.getAttribute("data-sort") !== null ? cellA.getAttribute("data-sort") : cellA.textContent.trim();
+            let valB = cellB.getAttribute("data-sort") !== null ? cellB.getAttribute("data-sort") : cellB.textContent.trim();
+
+            if (isNumeric) {
+                valA = parseFloat(valA) || 0;
+                valB = parseFloat(valB) || 0;
+            } else {
+                valA = valA.toLowerCase();
+                valB = valB.toLowerCase();
+            }
+
+            if (valA < valB) return currentDir === "asc" ? -1 : 1;
+            if (valA > valB) return currentDir === "asc" ? 1 : -1;
+            return 0;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+    }
+    </script>
+</body>
+</html>

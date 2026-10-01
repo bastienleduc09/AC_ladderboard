@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exclusive Records - A Duhamel</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 40px;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+        h1 {
+            font-size: 1.5rem;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 0.3rem;
+        }
+        p.subtitle {
+            color: #8b949e;
+            margin-bottom: 20px;
+        }
+        .nav-links {
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            color: #58a6ff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }
+        th {
+            background-color: #21262d;
+            color: #f0f6fc;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        th:hover {
+            background-color: #30363d;
+        }
+        th::after {
+            content: " ↕";
+            font-size: 0.8rem;
+            color: #8b949e;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        tr:hover td {
+            background-color: #1f242c;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-links">
+        <a href="index.html">&larr; Back to Main Leaderboard</a>
+    </div>
+    
+    <h1>Exclusive Records for A Duhamel</h1>
+    <p class="subtitle">GT3 & ETRC tracks and other car/track combos where <strong>A Duhamel</strong> has a record that the other pilot doesn't hold or hasn't raced.</p>
+    
+    <table id="pilot-leaderboard">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Track</th>
+                <th onclick="sortTable(1)">Car</th>
+                <th onclick="sortTable(2, true)">Lap Time</th>
+                <th onclick="sortTable(3, true)">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td data-sort="ACCR_HONDA_S2000 - SPA">Spa</td><td data-sort="ACCR_HONDA_S2000">Accr Honda S2000</td><td data-sort="220802">03:40.802</td><td data-sort="1786568983042">2026-08-12</td></tr><tr><td data-sort="AN_NEXTGEN_CHEVY - AA_NASHVILLE_SUPERSPEEDWAY-OVAL">Aa Nashville Superspeedway-Oval</td><td data-sort="AN_NEXTGEN_CHEVY">An Nextgen Chevy</td><td data-sort="35022">00:35.022</td><td data-sort="1785834993400">2026-08-04</td></tr><tr><td data-sort="ASRC_CLIO_CUP_5 - KS_NURBURGRING-LAYOUT_SPRINT_A">Ks Nurburgring-Layout Sprint A</td><td data-sort="ASRC_CLIO_CUP_5">Asrc Clio Cup 5</td><td data-sort="127142">02:07.142</td><td data-sort="1784825719209">2026-07-23</td></tr><tr><td data-sort="ASRC_CLIO_CUP_5 - LILSKI_WATKINS_GLEN-BOOT">Lilski Watkins Glen-Boot</td><td data-sort="ASRC_CLIO_CUP_5">Asrc Clio Cup 5</td><td data-sort="225745">03:45.745</td><td data-sort="1788117361854">2026-08-30</td></tr><tr><td data-sort="BKSY_NISSAN_SKYLINE_R34_VSPEC_II_NUR - KS_NURBURGRING-LAYOUT_SPRINT_A">Ks Nurburgring-Layout Sprint A</td><td data-sort="BKSY_NISSAN_SKYLINE_R34_VSPEC_II_NUR">Bksy Nissan Skyline R34 Vspec Ii Nur</td><td data-sort="114731">01:54.731</td><td data-sort="1784734634225">2026-07-22</td></tr><tr><td data-sort="BMW_M3_E30 - SPA">Spa</td><td data-sort="BMW_M3_E30">Bmw M3 E30</td><td data-sort="497481">08:17.481</td><td data-sort="1785193119915">2026-07-27</td></tr><tr><td data-sort="CHARGER_DOM_FNF1 - KS_DRAG-DRAG500">Ks Drag-Drag500</td><td data-sort="CHARGER_DOM_FNF1">Charger Dom Fnf1</td><td data-sort="34048">00:34.048</td><td data-sort="1785443796522">2026-07-30</td></tr><tr><td data-sort="ETRC - AUTUMNRINGMINI">Autumnringmini</td><td data-sort="ETRC_IVECO_S_WAY">Etrc Iveco S Way</td><td data-sort="55291">00:55.291</td><td data-sort="1790578319866">2026-09-28</td></tr><tr><td data-sort="ETRC - BUGATTI">Bugatti</td><td data-sort="ETRC_BUGGYRA_FREIGHTLINER">Etrc Buggyra Freightliner</td><td data-sort="139718">02:19.718</td><td data-sort="1790769385672">2026-09-30</td></tr><tr><td data-sort="FERRARI_LAFERRARI - LEMANS_2017-NO_LIGHTS">Lemans 2017-No Lights</td><td data-sort="FERRARI_LAFERRARI">Ferrari Laferrari</td><td data-sort="385683">06:25.683</td><td data-sort="1788301776558">2026-09-01</td></tr><tr><td data-sort="GT3 - KS_BLACK_CAT_COUNTY-LAYOUT_INT">Ks Black Cat County-Layout Int</td><td data-sort="CF_VIPER_GT3-R">Cf Viper Gt3-R</td><td data-sort="148394">02:28.394</td><td data-sort="1784275556182">2026-07-17</td></tr><tr><td data-sort="GT3 - KS_NURBURGRING-LAYOUT_SPRINT_A">Ks Nurburgring-Layout Sprint A</td><td data-sort="CF_VIPER_GT3-R">Cf Viper Gt3-R</td><td data-sort="89997">01:29.997</td><td data-sort="1784468388853">2026-07-19</td></tr><tr><td data-sort="GT3 - PAUL_RICARD-GT_24H">Paul Ricard-Gt 24H</td><td data-sort="KS_FERRARI_488_GT3">Ks Ferrari 488 Gt3</td><td data-sort="180527">03:00.527</td><td data-sort="1785697213758">2026-08-02</td></tr><tr><td data-sort="GT3 - TRIALMOUNTAIN-FORWARD">Trialmountain-Forward</td><td data-sort="CF_VIPER_GT3-R">Cf Viper Gt3-R</td><td data-sort="116989">01:56.989</td><td data-sort="1785185870327">2026-07-27</td></tr><tr><td data-sort="HONDA_CIVIC_EP3_CUP - SPA">Spa</td><td data-sort="HONDA_CIVIC_EP3_CUP">Honda Civic Ep3 Cup</td><td data-sort="193541">03:13.541</td><td data-sort="1785192566351">2026-07-27</td></tr><tr><td data-sort="KS_FORD_GT40 - SPA">Spa</td><td data-sort="KS_FORD_GT40">Ks Ford Gt40</td><td data-sort="209684">03:29.684</td><td data-sort="1785191905157">2026-07-27</td></tr><tr><td data-sort="KS_MASERATI_250F_12CYL - KS_SILVERSTONE-GP">Ks Silverstone-Gp</td><td data-sort="KS_MASERATI_250F_12CYL">Ks Maserati 250F 12Cyl</td><td data-sort="219493">03:39.493</td><td data-sort="1786570825321">2026-08-12</td></tr><tr><td data-sort="KS_MASERATI_MC12_GT1 - KS_SILVERSTONE-GP">Ks Silverstone-Gp</td><td data-sort="KS_MASERATI_MC12_GT1">Ks Maserati Mc12 Gt1</td><td data-sort="168976">02:48.976</td><td data-sort="1786571118816">2026-08-12</td></tr><tr><td data-sort="KS_MCLAREN_P1_GTR - KS_SILVERSTONE-GP">Ks Silverstone-Gp</td><td data-sort="KS_MCLAREN_P1_GTR">Ks Mclaren P1 Gtr</td><td data-sort="206826">03:26.826</td><td data-sort="1786571436374">2026-08-12</td></tr><tr><td data-sort="KS_NISSAN_GTR - KS_NURBURGRING-LAYOUT_SPRINT_A">Ks Nurburgring-Layout Sprint A</td><td data-sort="KS_NISSAN_GTR">Ks Nissan Gtr</td><td data-sort="104349">01:44.349</td><td data-sort="1784825264113">2026-07-23</td></tr><tr><td data-sort="KS_NISSAN_SKYLINE_R34 - KS_SILVERSTONE-GP">Ks Silverstone-Gp</td><td data-sort="KS_NISSAN_SKYLINE_R34">Ks Nissan Skyline R34</td><td data-sort="161343">02:41.343</td><td data-sort="1786572131281">2026-08-12</td></tr><tr><td data-sort="KS_NISSAN_SKYLINE_R34 - LEMANS_2017-NO_LIGHTS">Lemans 2017-No Lights</td><td data-sort="KS_NISSAN_SKYLINE_R34">Ks Nissan Skyline R34</td><td data-sort="425129">07:05.129</td><td data-sort="1788302312086">2026-09-01</td></tr><tr><td data-sort="KS_PORSCHE_911_RSR_2017 - KS_NURBURGRING-LAYOUT_SPRINT_A">Ks Nurburgring-Layout Sprint A</td><td data-sort="KS_PORSCHE_911_RSR_2017">Ks Porsche 911 Rsr 2017</td><td data-sort="95454">01:35.454</td><td data-sort="1785447369884">2026-07-30</td></tr><tr><td data-sort="KS_TOYOTA_AE86_DRIFT - CT_BACKWOODS">Ct Backwoods</td><td data-sort="KS_TOYOTA_AE86_DRIFT">Ks Toyota Ae86 Drift</td><td data-sort="100359">01:40.359</td><td data-sort="1788963868769">2026-09-09</td></tr><tr><td data-sort="PAGANI_ZONDA_R - LILSKI_WATKINS_GLEN-BOOT">Lilski Watkins Glen-Boot</td><td data-sort="PAGANI_ZONDA_R">Pagani Zonda R</td><td data-sort="117416">01:57.416</td><td data-sort="1786573189722">2026-08-12</td></tr><tr><td data-sort="PAGANI_ZONDA_R - TSUKUBA_CIRCUIT-FULL">Tsukuba Circuit-Full</td><td data-sort="PAGANI_ZONDA_R">Pagani Zonda R</td><td data-sort="56893">00:56.893</td><td data-sort="1790347639057">2026-09-25</td></tr><tr><td data-sort="PEUGEOT_205_GTI_1.9_GUTMANN_T16V_222CV - KS_HIGHLANDS-LAYOUT_SHORT">Ks Highlands-Layout Short</td><td data-sort="PEUGEOT_205_GTI_1.9_GUTMANN_T16V_222CV">Peugeot 205 Gti 1.9 Gutmann T16V 222Cv</td><td data-sort="62226">01:02.226</td><td data-sort="1790577954290">2026-09-28</td></tr>
+        </tbody>
+    </table>
+
+    <script>
+    function sortTable(colIndex, isNumeric = false) {
+        const table = document.getElementById("pilot-leaderboard");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        
+        const currentDir = table.getAttribute("data-sort-dir") === "asc" ? "desc" : "asc";
+        table.setAttribute("data-sort-dir", currentDir);
+
+        rows.sort((a, b) => {
+            let cellA = a.cells[colIndex];
+            let cellB = b.cells[colIndex];
+
+            if (!cellA || !cellB) return 0;
+
+            let valA = cellA.getAttribute("data-sort") !== null ? cellA.getAttribute("data-sort") : cellA.textContent.trim();
+            let valB = cellB.getAttribute("data-sort") !== null ? cellB.getAttribute("data-sort") : cellB.textContent.trim();
+
+            if (isNumeric) {
+                valA = parseFloat(valA) || 0;
+                valB = parseFloat(valB) || 0;
+            } else {
+                valA = valA.toLowerCase();
+                valB = valB.toLowerCase();
+            }
+
+            if (valA < valB) return currentDir === "asc" ? -1 : 1;
+            if (valA > valB) return currentDir === "asc" ? 1 : -1;
+            return 0;
+        });
+
+        rows.forEach(row => tbody.appendChild(row));
+    }
+    </script>
+</body>
+</html>

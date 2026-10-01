@@ -82,9 +82,10 @@ def get_track_display_name(track_and_layout):
 
 
 def parse_ini(filepath):
-    """Parses an Assetto Corsa personalbest.ini file, keeping only GT3 cars.
+    """Parses an Assetto Corsa personalbest.ini file.
 
-    Returns a dict mapping track to a dict of (car, time, date).
+    - GT3 and ETRC classes are grouped by track (only the fastest car per track in those classes is kept).
+    - Non-grouped cars are kept individually by (car, track).
     """
     records = {}
     resolved_path = resolve_ini_path(filepath)
@@ -104,30 +105,29 @@ def parse_ini(filepath):
 
             match = re.match(r"^\[(.+?)@(.+)\]$", line)
             if match:
-                # Si on change de bloc, on sauvegarde le précédent s'il est valide
-                if current_track:
-                    if current_track not in records or current_time < records[current_track]["time"]:
-                        records[current_track] = {
+                if current_track and current_car:
+                    car_lower = current_car.lower()
+                    if "gt3" in car_lower:
+                        key = ("GT3_CLASS", current_track)
+                    elif "etrc" in car_lower:
+                        key = ("ETRC_CLASS", current_track)
+                    else:
+                        key = (current_car, current_track)
+
+                    if key not in records or current_time < records[key]["time"]:
+                        records[key] = {
                             "car": current_car,
                             "time": current_time,
                             "date": current_date,
                         }
 
                 car_candidate, track_candidate = match.groups()
+                current_car = car_candidate
+                current_track = track_candidate
+                current_time = float("inf")
+                current_date = 0
 
-                # Filtrer uniquement les voitures dont le nom contient "GT3"
-                if "gt3" in car_candidate.lower():
-                    current_car = car_candidate
-                    current_track = track_candidate
-                    current_time = float("inf")
-                    current_date = 0
-                else:
-                    current_car = None
-                    current_track = None
-                    current_time = float("inf")
-                    current_date = 0
-
-            elif current_track and "=" in line:
+            elif current_track and current_car and "=" in line:
                 key, val = line.split("=", 1)
                 key = key.strip().upper()
                 val = val.strip()
@@ -142,10 +142,17 @@ def parse_ini(filepath):
                     except ValueError:
                         pass
 
-        # Ne pas oublier le dernier bloc du fichier
-        if current_track:
-            if current_track not in records or current_time < records[current_track]["time"]:
-                records[current_track] = {
+        if current_track and current_car:
+            car_lower = current_car.lower()
+            if "gt3" in car_lower:
+                key = ("GT3_CLASS", current_track)
+            elif "etrc" in car_lower:
+                key = ("ETRC_CLASS", current_track)
+            else:
+                key = (current_car, current_track)
+
+            if key not in records or current_time < records[key]["time"]:
+                records[key] = {
                     "car": current_car,
                     "time": current_time,
                     "date": current_date,
@@ -156,7 +163,7 @@ def parse_ini(filepath):
 
 def format_time(ms_int):
     """Converts milliseconds integer into mm:ss.ms string."""
-    if ms_int == float("inf"):
+    if ms_int == float("inf") or ms_int is None:
         return "N/A"
     total_seconds = ms_int / 1000.0
     minutes = int(total_seconds // 60)
@@ -168,8 +175,49 @@ def format_date(timestamp_ms):
     """Converts a Unix epoch timestamp in milliseconds to YYYY-MM-DD."""
     if not timestamp_ms:
         return "N/A"
-    dt = datetime.fromtimestamp(timestamp_ms / 1000.0, tz=timezone.utc)
-    return dt.strftime("%Y-%m-%d")
+    try:
+        dt = datetime.fromtimestamp(timestamp_ms / 1000.0, tz=timezone.utc)
+        return dt.strftime("%Y-%m-%d")
+    except Exception:
+        return "N/A"
+
+
+def generate_pilot_rows(user_data, opponent_data):
+    """Generates rows for records/combos that the pilot has that the opponent doesn't."""
+    rows = []
+    for key, u_info in sorted(user_data.items(), key=lambda x: str(x[0])):
+        if u_info["time"] == float("inf"):
+            continue
+        
+        if key not in opponent_data:
+            class_type = key[0]
+            track = key[1]
+            
+            track_display = get_track_display_name(track)
+            car_display = get_car_display_name(u_info["car"])
+            best_time = format_time(u_info["time"])
+            best_date = format_date(u_info["date"])
+            sort_date_val = u_info["date"] or 0
+
+            if class_type == "GT3_CLASS":
+                sort_track_val = f"GT3 - {track}"
+            elif class_type == "ETRC_CLASS":
+                sort_track_val = f"ETRC - {track}"
+            else:
+                sort_track_val = f"{u_info['car']} - {track}"
+
+            rows.append(
+                f"<tr>"
+                f'<td data-sort="{sort_track_val}">{track_display}</td>'
+                f'<td data-sort="{u_info["car"]}">{car_display}</td>'
+                f'<td data-sort="{u_info["time"]}">{best_time}</td>'
+                f'<td data-sort="{sort_date_val}">{best_date}</td>'
+                f"</tr>"
+            )
+            
+    if not rows:
+        return '<tr><td colspan="4" style="text-align: center;">No exclusive records found.</td></tr>'
+    return "".join(rows)
 
 
 def main():
@@ -198,44 +246,73 @@ def main():
             print("Tip: If your files are .lnk shortcuts, run: pip install pylnk3")
         return
 
-    all_tracks = set(user1_data.keys()).union(set(user2_data.keys()))
+    all_keys = set(user1_data.keys()).intersection(set(user2_data.keys()))
 
     table_rows = []
-    if not all_tracks:
+    if not all_keys:
         table_rows.append(
-            '<tr><td colspan="5" style="text-align: center;">No GT3 track records'
+            '<tr><td colspan="8" style="text-align: center;">No track records'
             " found between the two users.</td></tr>"
         )
     else:
-        for track in sorted(all_tracks):
-            u1_info = user1_data.get(track, {"car": "", "time": float("inf"), "date": 0})
-            u2_info = user2_data.get(track, {"car": "", "time": float("inf"), "date": 0})
+        for key in sorted(all_keys, key=lambda x: str(x)):
+            u1_info = user1_data.get(key, {"car": "", "time": float("inf"), "date": 0})
+            u2_info = user2_data.get(key, {"car": "", "time": float("inf"), "date": 0})
 
+            # Determine best and next best between user1 and user2 for this key
             if u1_info["time"] <= u2_info["time"]:
                 best_car = u1_info["car"]
-                best_time = format_time(u1_info["time"])
-                best_date = format_date(u1_info["date"])
-                sort_time_val = u1_info["time"]
-                sort_date_val = u1_info["date"]
-                holder = f"<strong>{user1_name}</strong>"
+                best_time_val = u1_info["time"]
+                best_date_val = u1_info["date"] or 0
+                best_holder = f"<strong>{user1_name}</strong>"
+
+                next_car = u2_info["car"]
+                next_time_val = u2_info["time"]
+                next_date_val = u2_info["date"] or 0
+                next_holder = f"<strong>{user2_name}</strong>" if next_time_val != float("inf") else "N/A"
             else:
                 best_car = u2_info["car"]
-                best_time = format_time(u2_info["time"])
-                best_date = format_date(u2_info["date"])
-                sort_time_val = u2_info["time"]
-                sort_date_val = u2_info["date"]
-                holder = f"<strong>{user2_name}</strong>"
+                best_time_val = u2_info["time"]
+                best_date_val = u2_info["date"] or 0
+                best_holder = f"<strong>{user2_name}</strong>"
+
+                next_car = u1_info["car"]
+                next_time_val = u1_info["time"]
+                next_date_val = u1_info["date"] or 0
+                next_holder = f"<strong>{user1_name}</strong>" if next_time_val != float("inf") else "N/A"
+
+            class_type = key[0]
+            track = key[1]
 
             track_display = get_track_display_name(track)
-            car_display = get_car_display_name(best_car) if best_car else "N/A"
+            
+            # Best fields
+            best_car_display = get_car_display_name(best_car) if best_car else "N/A"
+            best_time_str = format_time(best_time_val)
+            best_date_str = format_date(best_time_val != float("inf") and best_date_val or 0)
+
+            # Next best fields
+            next_car_display = get_car_display_name(next_car) if next_car and next_time_val != float("inf") else "N/A"
+            next_time_str = format_time(next_time_val)
+            next_date_str = format_date(next_time_val != float("inf") and next_date_val or 0)
+
+            if class_type == "GT3_CLASS":
+                sort_track_val = f"GT3 - {track}"
+            elif class_type == "ETRC_CLASS":
+                sort_track_val = f"ETRC - {track}"
+            else:
+                sort_track_val = f"{best_car} - {track}"
 
             table_rows.append(
                 f"<tr>"
-                f'<td data-sort="{track}">{track_display}</td>'
-                f'<td data-sort="{best_car}">{car_display}</td>'
-                f'<td data-sort="{sort_time_val}">{best_time}</td>'
-                f'<td data-sort="{sort_date_val}">{best_date}</td>'
-                f"<td>{holder}</td>"
+                f'<td data-sort="{sort_track_val}">{track_display}</td>'
+                f'<td data-sort="{best_car}">{best_car_display}</td>'
+                f'<td data-sort="{best_time_val}">{best_time_str}</td>'
+                f'<td data-sort="{best_date_val}">{best_date_str}</td>'
+                f'<td>{best_holder}</td>'
+                f'<td data-sort="{next_time_val}">{next_time_str}</td>'
+                f'<td data-sort="{next_date_val}">{next_date_str}</td>'
+                f'<td>{next_holder}</td>'
                 f"</tr>"
             )
 
@@ -244,7 +321,7 @@ def main():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assetto Corsa GT3 Shared Leaderboard - By Track</title>
+    <title>Assetto Corsa Shared Leaderboard</title>
     <style>
         body {{
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -260,6 +337,18 @@ def main():
         p.subtitle {{
             color: #8b949e;
             margin-bottom: 20px;
+        }}
+        .nav-links {{
+            margin-bottom: 20px;
+        }}
+        .nav-links a {{
+            color: #58a6ff;
+            text-decoration: none;
+            margin-right: 15px;
+            font-weight: 500;
+        }}
+        .nav-links a:hover {{
+            text-decoration: underline;
         }}
         table {{
             width: 100%;
@@ -296,19 +385,17 @@ def main():
         tr:hover td {{
             background-color: #1f242c;
         }}
-        code {{
-            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
-            background-color: rgba(110,118,129,0.4);
-            padding: 0.2em 0.4em;
-            border-radius: 6px;
-            font-size: 85%;
-        }}
     </style>
 </head>
 <body>
-    <h1>Assetto Corsa GT3 Shared Leaderboard</h1>
-    <p class="subtitle">Comparing: <strong>{user1_name}</strong> vs <strong>{user2_name}</strong> (Best GT3 lap time per track)</p>
+    <h1>Assetto Corsa Shared Leaderboard</h1>
+    <p class="subtitle">Comparing: <strong>{user1_name}</strong> vs <strong>{user2_name}</strong> (GT3 & ETRC classes combined per track, other cars per track/car combination)</p>
     
+    <div class="nav-links">
+        <a href="{user1_name.lower()}.html">View Exclusive Records for {user1_name}</a>
+        <a href="{user2_name.lower()}.html">View Exclusive Records for {user2_name}</a>
+    </div>
+
     <table id="leaderboard">
         <thead>
             <tr>
@@ -317,6 +404,9 @@ def main():
                 <th onclick="sortTable(2, true)">Best Lap Time</th>
                 <th onclick="sortTable(3, true)">Date</th>
                 <th onclick="sortTable(4)">Holder</th>
+                <th onclick="sortTable(5, true)">Next Best Time</th>
+                <th onclick="sortTable(6, true)">Next Date</th>
+                <th onclick="sortTable(7)">Next Holder</th>
             </tr>
         </thead>
         <tbody>
@@ -361,12 +451,151 @@ def main():
 """
 
     output_file.write_text(html_content, encoding="utf-8")
-    print(f"Interactive GT3 HTML leaderboard generated at {output_file.resolve()}")
+    print(f"Interactive HTML leaderboard generated at {output_file.resolve()}")
 
-    # Automatically commit and push index.html via Git
+    # Generate child pages for each pilot
+    for pilot_name, pilot_data, opponent_data in [
+        (user1_name, user1_data, user2_data),
+        (user2_name, user2_data, user1_data)
+    ]:
+        pilot_page_path = Path(f"{pilot_name.lower()}.html")
+        pilot_rows_html = generate_pilot_rows(pilot_data, opponent_data)
+        
+        pilot_html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exclusive Records - {pilot_name}</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 40px;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }}
+        h1 {{
+            font-size: 1.5rem;
+            border-bottom: 1px solid #30363d;
+            padding-bottom: 0.3rem;
+        }}
+        p.subtitle {{
+            color: #8b949e;
+            margin-bottom: 20px;
+        }}
+        .nav-links {{
+            margin-bottom: 20px;
+        }}
+        .nav-links a {{
+            color: #58a6ff;
+            text-decoration: none;
+            font-weight: 500;
+        }}
+        .nav-links a:hover {{
+            text-decoration: underline;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            overflow: hidden;
+        }}
+        th, td {{
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #30363d;
+        }}
+        th {{
+            background-color: #21262d;
+            color: #f0f6fc;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }}
+        th:hover {{
+            background-color: #30363d;
+        }}
+        th::after {{
+            content: " ↕";
+            font-size: 0.8rem;
+            color: #8b949e;
+        }}
+        tr:last-child td {{
+            border-bottom: none;
+        }}
+        tr:hover td {{
+            background-color: #1f242c;
+        }}
+    </style>
+</head>
+<body>
+    <div class="nav-links">
+        <a href="index.html">&larr; Back to Main Leaderboard</a>
+    </div>
+    
+    <h1>Exclusive Records for {pilot_name}</h1>
+    <p class="subtitle">GT3 & ETRC tracks and other car/track combos where <strong>{pilot_name}</strong> has a record that the other pilot doesn't hold or hasn't raced.</p>
+    
+    <table id="pilot-leaderboard">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Track</th>
+                <th onclick="sortTable(1)">Car</th>
+                <th onclick="sortTable(2, true)">Lap Time</th>
+                <th onclick="sortTable(3, true)">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {pilot_rows_html}
+        </tbody>
+    </table>
+
+    <script>
+    function sortTable(colIndex, isNumeric = false) {{
+        const table = document.getElementById("pilot-leaderboard");
+        const tbody = table.tBodies[0];
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        
+        const currentDir = table.getAttribute("data-sort-dir") === "asc" ? "desc" : "asc";
+        table.setAttribute("data-sort-dir", currentDir);
+
+        rows.sort((a, b) => {{
+            let cellA = a.cells[colIndex];
+            let cellB = b.cells[colIndex];
+
+            if (!cellA || !cellB) return 0;
+
+            let valA = cellA.getAttribute("data-sort") !== null ? cellA.getAttribute("data-sort") : cellA.textContent.trim();
+            let valB = cellB.getAttribute("data-sort") !== null ? cellB.getAttribute("data-sort") : cellB.textContent.trim();
+
+            if (isNumeric) {{
+                valA = parseFloat(valA) || 0;
+                valB = parseFloat(valB) || 0;
+            }} else {{
+                valA = valA.toLowerCase();
+                valB = valB.toLowerCase();
+            }}
+
+            if (valA < valB) return currentDir === "asc" ? -1 : 1;
+            if (valA > valB) return currentDir === "asc" ? 1 : -1;
+            return 0;
+        }});
+
+        rows.forEach(row => tbody.appendChild(row));
+    }}
+    </script>
+</body>
+</html>
+"""
+        pilot_page_path.write_text(pilot_html_content, encoding="utf-8")
+        print(f"Child page generated for {pilot_name} at {pilot_page_path.resolve()}")
+
     try:
         subprocess.run(
-            ["git", "add", str(output_file)], check=True, capture_output=True
+            ["git", "add", str(output_file), f"{user1_name.lower()}.html", f"{user2_name.lower()}.html"], check=True, capture_output=True
         )
         status = subprocess.run(
             ["git", "diff", "--cached", "--quiet"], capture_output=True
@@ -377,15 +606,15 @@ def main():
                     "git",
                     "commit",
                     "-m",
-                    "Auto-update GT3 leaderboard index.html via update_pb.py",
+                    "Auto-update leaderboard adding next best lap time, date, and holder columns via update_pb.py",
                 ],
                 check=True,
                 capture_output=True,
             )
             subprocess.run(["git", "push"], check=True, capture_output=True)
-            print("Successfully committed and pushed index.html to GitHub.")
+            print("Successfully committed and pushed leaderboard updates to GitHub.")
         else:
-            print("No changes detected in index.html to commit.")
+            print("No changes detected to commit.")
     except Exception as e:
         print(f"Git auto-commit/push skipped or failed: {e}")
 
